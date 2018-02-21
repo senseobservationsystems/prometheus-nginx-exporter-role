@@ -1,0 +1,12 @@
+---
+
+- name: service reenable
+  command: systemctl reenable prometheus-nginx-exporter.service
+
+- name: reinit nginx exporter
+  command: initctl reload-configuration
+
+- name: restart nginx exporter
+  service:
+    name: prometheus-nginx-exporter
+    state: restarted

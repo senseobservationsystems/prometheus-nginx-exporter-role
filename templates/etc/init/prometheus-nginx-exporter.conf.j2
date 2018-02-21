@@ -1,0 +1,16 @@
+description "Prometheus Nginx Exporter"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+{% if upstart_version.stdout | replace("init (upstart ", "") |replace(")","") | version_compare('1.4', '>=') %}
+setuid root
+setgid {{ prometheus_exporters_common_group }}
+{% endif %}
+
+script
+  exec >> "{{ prometheus_exporters_common_log_dir }}/nginx-exporter.log"
+  exec 2>&1
+  exec /usr/local/bin/mtail -v=2 -logtostderr -port 3093 -progs /etc/mtail.d -logs /var/log/nginx/*access*log
+
+end script

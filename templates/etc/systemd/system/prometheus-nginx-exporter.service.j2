@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus Nginx Exporter
+After=network.target
+
+[Service]
+Type=simple
+User={{ prometheus_exporters_common_user }}
+Group={{ prometheus_exporters_common_group }}
+ExecStart=/usr/local/bin/mtail -v=2 -logtostderr -port 3093 -progs /etc/mtail.d -logs /var/log/nginx/*access*log
+
+SyslogIdentifier=prometheus_nginx_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

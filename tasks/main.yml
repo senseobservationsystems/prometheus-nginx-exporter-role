@@ -1,0 +1,49 @@
+---
+
+- name: create systemd service unit
+  template:
+    src: etc/systemd/system/prometheus-nginx-exporter.service.j2
+    dest: /etc/systemd/system/prometheus-nginx-exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_service_mgr == 'systemd'
+  notify:
+    - service reenable
+    - restart nginx exporter
+
+- name: Looking which version of upstart is install
+  command: initctl version
+  when: ansible_service_mgr == 'upstart'
+  register: upstart_version
+
+- name: create init service unit
+  template:
+    src: etc/init/prometheus-nginx-exporter.conf.j2
+    dest: /etc/init/prometheus-nginx-exporter.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_service_mgr == 'upstart'
+  notify:
+    - reinit nginx exporter
+    - restart nginx exporter
+
+- name: create sysvinit service unit
+  template:
+    src: etc/init.d/prometheus-nginx-exporter.j2
+    dest: /etc/init.d/prometheus-nginx-exporter
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_service_mgr == 'sysvinit'
+  notify:
+    - restart nginx exporter
+
+- meta: flush_handlers
+
+- name: ensure prometheus mysqld exporter service is enabled and started
+  service:
+    name: prometheus-nginx-exporter
+    state: started
+    enabled: yes
